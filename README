@@ -1,0 +1,4 @@
+The following are file pertinent to the CLTC smap data collection and acutation project:
+	- conf.ini = our smap configuration file
+	- myexample.py = our smap driver file
+	- query.py = our smap query file
