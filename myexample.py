@@ -136,8 +136,8 @@ class Labview_socket(driver.SmapDriver):
         """
         Establishes a connection to self.host on port self.ports[port_idx].
         """
-        assert port_idx > 0
-        assert port_idx <= self.num_con
+        assert port_idx >= 0
+        assert port_idx < self.num_con
         try:
             s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             s.settimeout(self.timeout)
@@ -148,8 +148,18 @@ class Labview_socket(driver.SmapDriver):
             lux = float(data.strip()) * LUX_CONST
             self.add('/sensor%d'%port_idx,lux)
             print 'Added %f to /sensor%d'%(lux,port_idx)
+            return lux
         except:
             print 'ERROR',sys.exc_info()[0]
+
+    def set_state(point=0,state=1):
+        """
+        Sets the actuation point to the state
+        state - either 0(off) or 1(on)
+        point - index of the actuation point. 0 <= point < self.num_con
+        """
+        subprocess.call('curl -XPUT http://localhost:8080/data/ming-test0/point0?state=%d'%state,shell=True)
+        pass
 
     def read(self):
         """
@@ -158,31 +168,5 @@ class Labview_socket(driver.SmapDriver):
         Add value to /sensor0
         Close connection
         """
-        try:
-            s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(self.rate)
-            s.connect((self.host,self.port))
-            print 'peer',s.getpeername()
-            data=s.recv(128)
-            s.close()
-            print 'data',repr(data)
-            items = data.split('\t') #split elements of spreadsheet string
-            lux = float(items[0])*LUX_CONST
-            #lux = 150.0
-            self.add('/sensor0', lux) #add the first value
-            print 'added',lux
-            
-
-            #do the acutation. if lux < TOL, then set state to 0, otherwise set to 1
-            if(lux < TOL):
-                print 'About to set state to OFF'
-                subprocess.call('curl -XPUT http://localhost:8080/data/ming-test0/point0?state=0',shell=True)
-                print 'state is set to OFF'
-            else:
-                print 'About to set state to ON'
-                subprocess.call('curl -XPUT http://localhost:8080/data/ming-test0/point0?state=1',shell=True)
-                print 'state is set to ON'
-	except:
-            print 'erorr', sys.exc_info()[0]
-	    #print 'Either socket or Value error'
-	    #self.add('/sensor0', -1.0)
+        for i in range(self.num_con):
+            self.read_port(i)
