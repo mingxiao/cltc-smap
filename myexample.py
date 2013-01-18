@@ -102,11 +102,22 @@ class FileActuator(actuate.BinaryActuator):
 
 class Labview_socket(driver.SmapDriver):
     def setup(self, opts):
+        self.ports = []
+        self.num_con = opts.get('num_con',0) #get number of connections
+        assert self.num_con > 0
+        for i in range(self.num_con):
+            port = opts.get('port%d'%i,0)
+            assert port > 0
+            ports.append(port)
+        
 	#port and host should be defined in configuration file
-	self.port = int(opts.get("port",8081)) #default port 8081
+	#self.port = int(opts.get("port",8081)) #default port 8081
 	self.host = opts.get('host','localhost') #default host localhost
 	self.rate = int(opts.get("Rate", 2))#Can set the rate to whatever you want, in seconds
-	self.add_timeseries('/sensor0','Lux',data_type='double')
+	self.timeout = float(self.rate)/self.num_con
+        #add the timeseries
+	for i in range(self.num_con):
+            self.add_timeseries('/sensor%d'%i,'Lux',data_type='double')
         self.set_metadata('/', {
             'Instrument/Manufacturer' : 'Labview Datasocket',
             'Instrument/Model' : 'sensor'
@@ -120,7 +131,6 @@ class Labview_socket(driver.SmapDriver):
 
     def start(self):
         util.periodicSequentialCall(self.read).start(self.rate)
-
 
     def read(self):
         """
