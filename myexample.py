@@ -132,6 +132,25 @@ class Labview_socket(driver.SmapDriver):
     def start(self):
         util.periodicSequentialCall(self.read).start(self.rate)
 
+    def read_port(port_idx):
+        """
+        Establishes a connection to self.host on port self.ports[port_idx].
+        """
+        assert port_idx > 0
+        assert port_idx <= self.num_con
+        try:
+            s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            s.settimeout(self.timeout)
+            s.connect((self.host,self.ports[port_idx]))
+            print 'Connected to %s on port %d'%(s.getpeername,self.ports[port_idx])
+            data = s.recv(128)
+            print 'Received %s'%repr(data)
+            lux = float(data.strip()) * LUX_CONST
+            self.add('/sensor%d'%port_idx,lux)
+            print 'Added %f to /sensor%d'%(lux,port_idx)
+        except:
+            print 'ERROR',sys.exc_info()[0]
+
     def read(self):
         """
         Creates a connection to (self.host,self.port)
