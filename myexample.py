@@ -103,12 +103,15 @@ class FileActuator(actuate.BinaryActuator):
 class Labview_socket(driver.SmapDriver):
     def setup(self, opts):
         self.ports = []
-        self.num_con = opts.get('num_con',0) #get number of connections
+        self.num_con = int(opts.get('num_con',0)) #get number of connections
         assert self.num_con > 0
         for i in range(self.num_con):
-            port = opts.get('port%d'%i,0)
+            port = int(opts.get('port%d'%i,0))
             assert port > 0
-            ports.append(port)
+            self.ports.append(port)
+
+        print '________________'
+        print self.num_con, self.ports
         
 	#port and host should be defined in configuration file
 	#self.port = int(opts.get("port",8081)) #default port 8081
@@ -132,27 +135,33 @@ class Labview_socket(driver.SmapDriver):
     def start(self):
         util.periodicSequentialCall(self.read).start(self.rate)
 
-    def read_port(port_idx):
+    def read_port(self,port_idx):
         """
         Establishes a connection to self.host on port self.ports[port_idx].
         """
         assert port_idx >= 0
         assert port_idx < self.num_con
+        #print 'hereeeee'
         try:
             s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            s.settimeout(self.timeout)
-            s.connect((self.host,self.ports[port_idx]))
+            print 'created socket'
+            #s.settimeout(self.timeout)
+            #s.settimeout(1)
+            #print 'set timeout'
+            print self.host, self.ports[port_idx]
+            s.connect((str(self.host),self.ports[port_idx]))
             print 'Connected to %s on port %d'%(s.getpeername,self.ports[port_idx])
             data = s.recv(128)
+            s.close()
             print 'Received %s'%repr(data)
             lux = float(data.strip()) * LUX_CONST
             self.add('/sensor%d'%port_idx,lux)
             print 'Added %f to /sensor%d'%(lux,port_idx)
             return lux
         except:
-            print 'ERROR',sys.exc_info()[0]
+            print 'ERROR: sensor%d'%port_idx,sys.exc_info()[0]
 
-    def set_state(point=0,state=1):
+    def set_state(self,point=0,state=1):
         """
         Sets the actuation point to the state
         state - either 0(off) or 1(on)
