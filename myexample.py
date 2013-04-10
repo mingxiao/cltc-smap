@@ -116,7 +116,7 @@ class Labview_socket(driver.SmapDriver):
 	#port and host should be defined in configuration file
 	#self.port = int(opts.get("port",8081)) #default port 8081
 	self.host = opts.get('host','localhost') #default host localhost
-	self.rate = int(opts.get("Rate", 2))#Can set the rate to whatever you want, in seconds
+	self.rate = float(opts.get("Rate"))#Can set the rate to whatever you want trying ms
 	self.timeout = float(self.rate)/self.num_con
         #add the timeseries
 	for i in range(self.num_con):
@@ -133,6 +133,9 @@ class Labview_socket(driver.SmapDriver):
                           read_limit=1, write_limit=1)
 
     def start(self):
+        """
+        The main entry point into our driver.
+        """
         util.periodicSequentialCall(self.read).start(self.rate)
 
     def read_port(self,port_idx):
@@ -141,7 +144,6 @@ class Labview_socket(driver.SmapDriver):
         """
         assert port_idx >= 0
         assert port_idx < self.num_con
-        #print 'hereeeee'
         try:
             s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             print 'created socket'
@@ -169,7 +171,7 @@ class Labview_socket(driver.SmapDriver):
         """
         subprocess.call('curl -XPUT http://localhost:8080/data/ming-test0/point0?state=%d'%state,shell=True)
         pass
-
+    
     def read(self):
         """
         Creates a connection to (self.host,self.port)
