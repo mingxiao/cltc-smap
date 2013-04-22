@@ -1,11 +1,12 @@
 import urllib2
 import ast
-import datetime as dt
+import datetime
 
 uuid = '53cc00bb-1b69-5740-a88b-0c391578b15d'
 def get_value(uuid, starttime, unit = 'A'):
     """
-    Gets the value of the timeseries associated with uuid, at the time previous starttime
+    Gets the value of the timeseries associated with uuid, at the time
+    previous starttime
 
     uuid - uuid of the timeseries
     starttime - time in unix milliseconds since epoch
@@ -60,7 +61,7 @@ def unix_ms(month,day,hour,minute,second=0,year=2013):
     Returns the milliseconds since UNIX epoch since the date and time inputed
     """
     try:
-        some_date = dt.datetime(year, month,day,hour,minute,second)
+        some_date = datetime.datetime(year, month,day,hour,minute,second)
         timestamp = float(some_date.strftime('%s.%f'))
         return int(timestamp*1000)
     except ValueError:
@@ -70,12 +71,20 @@ def epoch_time():
     """
     Return the current time in milliseconds since the UNIX epoch
     """
-    now = dt.datetime.now()
+    now = datetime.datetime.now()
     timestamp = float(now.strftime('%s.%f'))
     return int(timestamp*1000)
+
+def unix_time(dt):
+    epoch = datetime.datetime.utcfromtimestamp(0)
+    delta = dt - epoch
+    return delta.total_seconds()
+
+def unix_time_millis(dt):
+    return unix_time(dt) * 1000.0
     
 #print epoch_time()
 #print get_value(uuid,epoch_time())
-
-result =get_range_value(uuid,unix_ms(1,15,1,0), unix_ms(1,15,1,30))
+if __name__ == '__main__':
+    result =get_range_value(uuid,unix_ms(1,15,1,0), unix_ms(1,15,1,30))
 
