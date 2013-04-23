@@ -1,4 +1,10 @@
-The following are file pertinent to the CLTC smap data collection and acutation project:
-	- conf.ini = our smap configuration file
-	- myexample.py = our smap driver file
-	- query.py = our smap query file
+myexample.py - driver to read values via TCP and upload to smap
+conf.ini - config file for myexample.py 
+
+sensor_driver.py - driver to read from arduino board via bluetooth
+sensor.ini - config file for sensor_driver.py
+
+ms_socket.py - driver to test millisecond capability
+ms.ini - config file for ms_socket.py
+
+To run smap: $ twistd -n smap <path to .ini file>
